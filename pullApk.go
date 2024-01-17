@@ -5,15 +5,31 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
 func main() {
 	// Read package_name from user input
+	fmt.Println("Hello!! ")
 	fmt.Print("Enter package_name: ")
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	packageName := strings.TrimSpace(scanner.Text())
+
+	// Ask the user for a folder name
+	fmt.Print("Enter folder name for saving APKs: ")
+	scanner.Scan()
+	folderName := strings.TrimSpace(scanner.Text())
+
+	// Create the destination directory based on the provided folder name
+	destDirectory := filepath.Join(".", folderName)
+
+	// Create the directory if it doesn't exist
+	if err := os.MkdirAll(destDirectory, 0755); err != nil {
+		fmt.Println("Error creating destination directory:", err)
+		return
+	}
 
 	// Get the paths of the APKs
 	paths, err := getApkPaths(packageName)
@@ -22,9 +38,9 @@ func main() {
 		return
 	}
 
-	// Pull all the APKs
+	// Pull all the APKs to the specified destination directory
 	for _, path := range paths {
-		if err := pullApk(path); err != nil {
+		if err := pullApk(path, destDirectory); err != nil {
 			fmt.Printf("Error pulling APK from path %s: %v\n", path, err)
 		}
 	}
@@ -57,14 +73,17 @@ func getApkPaths(packageName string) ([]string, error) {
 	return paths, nil
 }
 
-func pullApk(path string) error {
+func pullApk(path, destDirectory string) error {
+	// Specify the destination file path
+	destFilePath := filepath.Join(destDirectory, filepath.Base(path))
+
 	// Run the adb pull command
-	cmd := exec.Command("adb", "pull", path)
+	cmd := exec.Command("adb", "pull", path, destFilePath)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("failed to execute adb pull command: %v\n%s", err, output)
 	}
 
-	fmt.Printf("APK pulled successfully from path %s\n", path)
+	fmt.Printf("APK pulled successfully from path %s to %s\n", path, destFilePath)
 	return nil
 }

@@ -11,7 +11,6 @@ import (
 
 func main() {
 	// Read package_name from user input
-	fmt.Println("Hello!! ")
 	fmt.Print("Enter package_name: ")
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
